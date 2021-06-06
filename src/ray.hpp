@@ -4,7 +4,7 @@
 #include "vec3.hpp"
 
 template <typename T>
-struct ray
+struct Ray
 {
     using point = vec3<T>;
     using vec = vec3<T>;
@@ -19,7 +19,7 @@ struct ray
 };
 
 template <typename T>
-std::ostream &operator<<(std::ostream &os, const ray<T> &r)
+std::ostream &operator<<(std::ostream &os, const Ray<T> &r)
 {
     return os << "R{" << r.start << ", " << r.dir << "}";
 }

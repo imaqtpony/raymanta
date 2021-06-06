@@ -7,6 +7,9 @@
 #include "lodepng.hpp"
 #include "vec3.hpp"
 #include "triangle.hpp"
+// #include "sphere.hpp"
+// #include "material.hpp"
+#include "camera.hpp"
 
 using namespace std;
 using pixel = unsigned char;
@@ -31,8 +34,8 @@ int main()
 
     // lodepng::encode(filename, image, width, height);
 
-    random_device rd;
-    mt19937 rng(rd());
+    // random_device rd;
+    // mt19937 rng(rd());
 
     using vec = vec3<double>;
     // vec3<double> a = {1, -1, 0};
@@ -40,11 +43,16 @@ int main()
     vec b = {1, 0, 0};
     vec c = {1, 1, 0};
 
-    triangle<double> t(a, b, c);
-    ray<double> r{vec{0.5, 0.4, 1}, vec{0, 0, -1}};
-    ray<double> mr{vec{0, 0, 1}, vec{0, 0, 1}};
+    Camera<double> cam = {a, b, c, 480, 480, 60};
 
-    auto ti = t.intersect(r);
+    cout << cam << endl;
+
+    // triangle<double> t(a, b, c);
+    // ray<double> r{vec{0.5, 0.4, 1}, vec{0, 0, -1}};
+    // ray<double> mr{vec{0, 0, 1}, vec{0, 0, 1}};
+
+    // auto ti = t.intersect(r);
+
     // assert(-a == vec3<double>(-1, -2, -3));
     // assert(a * 2 == vec3<double>(1 * 2, 2 * 2, 3 * 2));
     // assert(a / 4. == vec3<double>(1 / 4., 2 / 4., 3 / 4.));
