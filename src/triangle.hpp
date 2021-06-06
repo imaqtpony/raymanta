@@ -20,7 +20,7 @@ struct triangle
     {
     }
 
-    T intersect(const Ray<T> &p_ray)
+    T Intersect(const Ray<T> &p_ray)
     {
         vec pvec = p_ray.dir ^ ac;
         T det = ab.dot(pvec);

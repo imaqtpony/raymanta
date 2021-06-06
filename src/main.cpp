@@ -9,13 +9,22 @@
 #include "triangle.hpp"
 // #include "sphere.hpp"
 // #include "material.hpp"
-#include "camera.hpp"
+// #include "camera.hpp"
+#include "scene.hpp"
 
 using namespace std;
 using pixel = unsigned char;
 
 int main()
 {
+    /****************************
+     * TODO faire main.cpp
+     * debugger scene
+     * tester scene.hpp, material, camera
+     * faire une scene sur sceneBuilder
+     * renommer un max les vars
+     * commenter
+     ************************* */
     // string filename = "yolo.png";
     // constexpr uint width = 1048;
     // constexpr uint height = 720;
@@ -37,15 +46,15 @@ int main()
     // random_device rd;
     // mt19937 rng(rd());
 
-    using vec = vec3<double>;
-    // vec3<double> a = {1, -1, 0};
-    vec a = {0, 0, 0};
-    vec b = {1, 0, 0};
-    vec c = {1, 1, 0};
+    // using vec = vec3<double>;
+    // // vec3<double> a = {1, -1, 0};
+    // vec a = {0, 0, 0};
+    // vec b = {1, 0, 0};
+    // vec c = {1, 1, 0};
 
-    Camera<double> cam = {a, b, c, 480, 480, 60};
+    // Camera<double> cam = {a, b, c, 480, 480, 60};
 
-    cout << cam << endl;
+    // cout << cam << endl;
 
     // triangle<double> t(a, b, c);
     // ray<double> r{vec{0.5, 0.4, 1}, vec{0, 0, -1}};
