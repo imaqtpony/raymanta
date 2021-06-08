@@ -65,7 +65,7 @@ namespace scene_builder
                                   S{P{120., 100., 250.}, 100.},
                                   S{P{120., 100., 250.}, 30},
                                   S{P{430., 80., 300.}, 80},
-                                  S{P{275., 120., 430.}, 12}};
+                                  S{P{275., 220., 330.}, 120}};
 
         std::vector<M> spheresMat = {light, glass, mirror, perfectmirror, smallSpecBlue};
 

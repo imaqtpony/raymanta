@@ -24,21 +24,6 @@ std::ostream &operator<<(std::ostream &os, const vector<T> &v)
     return os;
 }
 
-template <typename T>
-void save_render(string filename, const vector<vec3<T>> &image, int width, int height)
-{
-    using pixel = unsigned char;
-    vector<pixel> png_image;
-    for (auto &pix : image)
-    {
-        png_image.push_back((pixel)pix.x);
-        png_image.push_back((pixel)pix.y);
-        png_image.push_back((pixel)pix.z);
-        png_image.push_back(255);
-    }
-    lodepng::encode(filename, png_image, width, height);
-}
-
 int main()
 {
     /****************************
@@ -50,10 +35,10 @@ int main()
      * commenter
      ************************* */
 
-    auto scene = scene_builder::cornelBoxSpheres<double, mt19937>(240, 240);
+    auto scene = scene_builder::cornelBoxSpheres<double, minstd_rand>(500, 500);
 
-    auto image = scene.Render(3000, 42);
-    save_render("yes.png", image, scene.cam.width, scene.cam.height);
+    auto image = scene.Render(1000, 42);
+    lodepng::encode("yes2.png", image, scene.cam.width, scene.cam.height);
 
     // string filename = "yolo.png";
     // constexpr uint width = 1048;

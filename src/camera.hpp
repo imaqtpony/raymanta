@@ -19,9 +19,21 @@ struct Camera
     T aspectRatio;
     T clippingPlane;
 
-    Camera(const Point &pos, const Direction &dir, const Direction &updir, int width, int height, T yFov)
-        : pos(pos), width(width), height(height), dir(dir.norm()), w(this->dir), u((w ^ updir).norm()), v(w ^ u),
-          aspectRatio((T)width / height), clippingPlane(1. / tan(yFov * M_PI / 360.))
+    Camera(const Point &pos,
+           const Direction &dir,
+           const Direction &updir,
+           int width,
+           int height,
+           T yFov)
+        : pos(pos),
+          width(width),
+          height(height),
+          dir(dir.norm()),
+          w(this->dir),
+          u((w ^ updir).norm()),
+          v(w ^ u),
+          aspectRatio((T)width / height),
+          clippingPlane(1. / tan(yFov * M_PI / 360.))
     {
     }
 
@@ -36,7 +48,6 @@ struct Camera
     template <typename RNG>
     Ray<T> GetRay(RNG &rng, int p_x, int p_y) const
     {
-
         auto dx = GetRandDif(rng);
         auto dy = GetRandDif(rng);
 

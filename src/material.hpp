@@ -28,7 +28,7 @@ struct material
         return (ubyte)std::round(std::pow(std::clamp(t, 0., 1.), 1. / GAMMA) * 255);
     }
 
-    static color colorToPixel(const color &c)
+    static vec3<ubyte> colorToPixel(const color &c)
     {
         return {ctp(c.x), ctp(c.y), ctp(c.z)};
     }

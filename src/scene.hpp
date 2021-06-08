@@ -1,6 +1,9 @@
 #include <iostream>
 #include <vector>
 #include <limits>
+#include <algorithm>
+#include <execution>
+#include <mutex>
 
 #include "vec3.hpp"
 #include "ray.hpp"
@@ -159,48 +162,83 @@ struct Scene
         return mat.diffuse * radiance + mat.emission;
     }
 
-    std::vector<Color> Render(int samplesPerPixel, int seed, int maxDepth = 10) const
+    std::vector<unsigned char> Render(int samplesPerPixel, int seed, int maxDepth = 10) const
     {
-        int width = cam.width;
-        int height = cam.height;
-        std::vector<Color> res(height * width);
-        // int rowsDone = 0;
+        std::vector<unsigned char> res(cam.width * cam.height * 4);
 
-        // random_devide rd;
-        // RNG rng(rd());
+        std::vector<int> ys(cam.height);
+        std::iota(ys.begin(), ys.end(), 0);
 
-        RNG rng(seed);
+        int lines_done = 0;
+        std::mutex mut;
 
-        for (int y = 0; y < height; y++)
-        {
-            for (int x = 0; x < width; ++x)
+        std::for_each(
+            std::execution::par_unseq,
+            ys.begin(),
+            ys.end(),
+            [this, &res, seed, samplesPerPixel, maxDepth, &lines_done, &mut](int y)
             {
-                Color pixelColor = {0., 0., 0.};
-                for (int i = 0; i < samplesPerPixel; ++i)
+                RNG rng(y * y + seed);
+                for (int x = 0; x < cam.width; ++x)
                 {
-                    auto ray = cam.GetRay(rng, x, y);
-                    auto rad = Radiance(rng, ray, 0, maxDepth);
-                    pixelColor = pixelColor + rad;
+                    Color pixelColor = {0., 0., 0.};
+                    for (int i = 0; i < samplesPerPixel; ++i)
+                    {
+                        auto ray = cam.GetRay(rng, x, y);
+                        auto rad = Radiance(rng, ray, 0, maxDepth);
+                        pixelColor = pixelColor + rad;
+                    }
+
+                    pixelColor = pixelColor / (T)samplesPerPixel;
+                    auto pixelPos = (y * cam.width + x) * 4;
+                    auto pixel = material<T>::colorToPixel(pixelColor);
+                    res[pixelPos + 0] = pixel.x;
+                    res[pixelPos + 1] = pixel.y;
+                    res[pixelPos + 2] = pixel.z;
+                    res[pixelPos + 3] = 255;
                 }
 
-                pixelColor = pixelColor / (T)samplesPerPixel;
-                auto pixelPos = y * width + x;
-                res[pixelPos] = material<T>::colorToPixel(pixelColor);
-            }
+                {
+                    std::unique_lock lock(mut);
+                    ++lines_done;
+                    constexpr int total_chars = 50;
+                    int done_chars = (total_chars * lines_done) / cam.height;
+                    int todo_chars = total_chars - done_chars;
+                    std::cerr << "\r  [";
+                    for (int ii = 0; ii < done_chars; ++ii)
+                        std::cerr << "#";
+                    for (int ii = 0; ii < todo_chars; ++ii)
+                        std::cerr << " ";
+                    std::cerr << "] -- " << (int)(100. * lines_done / (double)cam.height) << " %   ";
+                }
+            });
 
-            std::cout << y << std::endl;
-            // rowsDone++;
-            // auto prop = 100. * rowsDone / height;
-            // auto nok = (int)round(prop * PROGRESS_CHARS / 100.);
-            // auto nnok = PROGRESS_CHARS - nok;
-            //Log
-        }
+        std::cerr << "\033[0;32mPOGGERS\033[0;0m" << std::endl;
+
+        // for (int y = 0; y < height; y++)
+        // {
+        //     for (int x = 0; x < width; ++x)
+        //     {
+        //         Color pixelColor = {0., 0., 0.};
+        //         for (int i = 0; i < samplesPerPixel; ++i)
+        //         {
+        //             auto ray = cam.GetRay(rng, x, y);
+        //             auto rad = Radiance(rng, ray, 0, maxDepth);
+        //             pixelColor = pixelColor + rad;
+        //         }
+
+        //         pixelColor = pixelColor / (T)samplesPerPixel;
+        //         auto pixelPos = y * width + x;
+        //         res[pixelPos] = material<T>::colorToPixel(pixelColor);
+        //     }
+
+        //     std::cout << y << std::endl;
+        //     // rowsDone++;
+        //     // auto prop = 100. * rowsDone / height;
+        //     // auto nok = (int)round(prop * PROGRESS_CHARS / 100.);
+        //     // auto nnok = PROGRESS_CHARS - nok;
+        //     //Log
+        // }
         return res;
     }
-};
-
-template <typename T, typename RNG>
-std::ostream &operator<<(std::ostream &os, Scene<T, RNG> &sc)
-{
-    return os;
 };
