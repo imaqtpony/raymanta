@@ -44,7 +44,7 @@ struct sphere
 };
 
 template <typename T>
-std::ostream &operator<<(const std::ostream &os, const sphere<T> &s)
+std::ostream &operator<<(std::ostream &os, const sphere<T> &s)
 {
     return os << "S(" << s.center << ", " << s.radius << ")";
 }

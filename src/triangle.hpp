@@ -20,7 +20,7 @@ struct triangle
     {
     }
 
-    T Intersect(const Ray<T> &p_ray)
+    T Intersect(const Ray<T> &p_ray) const
     {
         vec pvec = p_ray.dir ^ ac;
         T det = ab.dot(pvec);
@@ -49,7 +49,7 @@ struct triangle
 };
 
 template <typename T>
-std::ostream &operator<<(const std::ostream &os, const triangle<T> &t)
+std::ostream &operator<<(std::ostream &os, const triangle<T> &t)
 {
     return os << "T{" << t.a << ", " << t.b << ", " << t.c << ",n=" << t.n << "}";
 }

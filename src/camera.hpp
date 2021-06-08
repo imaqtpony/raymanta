@@ -13,9 +13,9 @@ struct Camera
     using Direction = vec3<T>;
 
     Point pos;
-    Direction dir;
-    vec3<T> u, v, w;
     int width, height;
+    Direction dir;
+    Point w, u, v;
     T aspectRatio;
     T clippingPlane;
 
@@ -26,16 +26,15 @@ struct Camera
     }
 
     template <typename RNG>
-    auto GetRandDif(RNG &rng)
+    T GetRandDif(RNG &rng) const
     {
-        static std::uniform_real_distribution uniform01(0., 1.);
+        std::uniform_real_distribution uniform01(0., 1.);
         auto u = 2. * uniform01(rng);
         return u < 1. ? sqrt(u) - 1. : 1. - sqrt(2 - u);
     }
 
-    // utiliser T ici? Ray<T>
     template <typename RNG>
-    auto GetRay(RNG &rng, int p_x, int p_y) const
+    Ray<T> GetRay(RNG &rng, int p_x, int p_y) const
     {
 
         auto dx = GetRandDif(rng);
@@ -47,17 +46,14 @@ struct Camera
         Ray<T> res = {pos, w * clippingPlane};
         res.dir = u * x * aspectRatio + res.dir;
         res.dir = v * y + res.dir;
+        res.dir = res.dir.norm();
 
-        return res.dir.norm();
+        return res;
     }
 };
 
 template <typename T>
-std::ostream &operator<<(const std::ostream &os, const Camera<T> &c)
+std::ostream &operator<<(std::ostream &os, const Camera<T> &c)
 {
-    // using a = std::append;
-    std::string res;
-    // res.append("Cam( pos: ").append(c.pos).append(" uvw: ").append(c.u).append(c.v).append(c.w).append(" width height: ").append(c.width).append("|").append(c.height).append(" aspect ratio: ").append(c.aspectRatio).append(" plane dist: ").append(c.clippingPlane).append(")");
-    // return os << res;
     return os << "Cam( pos: " << c.pos << " uvw: " << c.u << c.v << c.w << " width height: " << c.width << "|" << c.height << " aspect ratio: " << c.aspectRatio << " plane dist: " << c.clippingPlane << ")";
 }

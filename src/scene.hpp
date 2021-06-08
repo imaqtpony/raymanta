@@ -1,5 +1,6 @@
 #include <iostream>
-#include <array>
+#include <vector>
+#include <limits>
 
 #include "vec3.hpp"
 #include "ray.hpp"
@@ -24,25 +25,32 @@ struct Scene
     };
 
     Camera<T> cam;
-    sphere<T> *spheres;
-    material<T> *spheresMat;
-    triangle<T> *triangles;
-    material<T> *trianglesMat;
-    // nah
-    //vectors ?
-    Scene(Camera<T> &p_cam, sphere<T> p_spheres[], material<T> p_spheresMat[], sphere<T> p_tris[], material<T> p_trianglesMat[])
-        : cam(p_cam), spheres(&p_spheres), spheresMat(&p_spheresMat), triangles(&p_tris), trianglesMat(&p_trianglesMat)
+    std::vector<sphere<T>> spheres;
+    std::vector<material<T>> spheresMat;
+    std::vector<triangle<T>> triangles;
+    std::vector<material<T>> trianglesMat;
+
+    Scene(const Camera<T> &p_cam,
+          const std::vector<sphere<T>> &p_spheres,
+          const std::vector<material<T>> &p_spheresMat,
+          const std::vector<triangle<T>> &p_tris,
+          const std::vector<material<T>> &p_trianglesMat)
+        : cam(p_cam),
+          spheres(p_spheres),
+          spheresMat(p_spheresMat),
+          triangles(p_tris),
+          trianglesMat(p_trianglesMat)
     {
     }
 
-    IntersectionInfo Intersect(const Ray<T> &ray) const
+    std::pair<bool, IntersectionInfo> Intersect(const Ray<T> &ray) const
     {
-        T minDist = T.infinity;
-        auto minId;
-        for (int i = 0; i < spheres.Length; i++)
+        T minDist = std::numeric_limits<T>::infinity();
+        size_t minId;
+        for (size_t i = 0; i < spheres.size(); i++)
         {
             auto inter = spheres[i].Intersect(ray);
-            if (inter < minDist)
+            if (inter != -1 && inter < minDist)
             {
                 minDist = inter;
                 minId = i;
@@ -50,11 +58,10 @@ struct Scene
         }
 
         bool isTri = false;
-        for (int i = 0; i < triangles.Length; i++)
+        for (size_t i = 0; i < triangles.size(); i++)
         {
             auto inter = triangles[i].Intersect(ray);
-            // !inter.isNull
-            if (inter < minDist)
+            if (inter != -1 && inter < minDist)
             {
                 minDist = inter;
                 minId = i;
@@ -62,9 +69,11 @@ struct Scene
             }
         }
 
-        IntersectionInfo res;
-        if (minDist == T.Infinity)
-            return res;
+        if (minDist == std::numeric_limits<T>::infinity())
+        {
+            IntersectionInfo res;
+            return {false, res};
+        }
 
         vec3<T> interPos = ray.at(minDist);
         vec3<T> normal = isTri ? triangles[minId].n : spheres[minId].normal(interPos);
@@ -73,20 +82,19 @@ struct Scene
         if (inside)
             normal = -normal;
 
-        res = IntersectionInfo(interPos, normal, isTri ? trianglesMat[minId] : spheresMat[minId], inside);
-        return res;
+        return {true, IntersectionInfo{interPos, normal, isTri ? trianglesMat[minId] : spheresMat[minId], inside}};
     }
 
-    Color Radiance(RNG &rng, const ray<T> &ray, int depth, int MAX_DEPTH) const
+    Color Radiance(RNG &rng, const Ray<T> &ray, int depth, int MAX_DEPTH) const
     {
         static std::uniform_real_distribution uniform01(0., 1.);
 
         if (depth > MAX_DEPTH)
-            return Color(0, 0, 0);
+            return Color{0, 0, 0};
 
-        auto interInfo = Intersect(ray);
-        if (!interInfo) //== nullptr)
-            return Color(0, 0, 0);
+        auto [intersection, interInfo] = Intersect(ray);
+        if (!intersection)
+            return Color{0, 0, 0};
 
         material mat = interInfo.mat;
 
@@ -105,15 +113,15 @@ struct Scene
 
         switch (mat.type)
         {
-        case MatType.DIFFUSE:
-            reflectionRay = Ray<T>(interInfo.pos, normal.sampleHemis(rng));
+        case material<T>::MatType::DIFFUSE:
+            reflectionRay = Ray<T>{interInfo.pos, normal.sampleHemis(rng)};
             radiance = Radiance(rng, reflectionRay, depth + 1, MAX_DEPTH);
             break;
-        case MatType.SPECULAR:
-            reflectionRay = Ray<T>(interInfo.pos, normal.sampleCone(rng, mat.refractionAngle));
+        case material<T>::MatType::SPECULAR:
+            reflectionRay = Ray<T>{interInfo.pos, normal.sampleCone(rng, mat.refractionAngle)};
             radiance = Radiance(rng, reflectionRay, depth + 1, MAX_DEPTH);
             break;
-        case MatType.REFRACT:
+        case material<T>::MatType::REFRACT:
             auto ni = interInfo.inside ? 1.5 : 1.;
             auto nt = interInfo.inside ? 1. : 1.5;
 
@@ -132,57 +140,59 @@ struct Scene
                 {
                     vec3<T> tDir = ray.dir * nint;
                     tDir = normal * (nint * cosi - cost) + tDir;
-                    Ray<T> tranRay = Ray<T>(interInfo.pos, tDir);
+                    Ray<T> tranRay = Ray<T>{interInfo.pos, tDir};
                     radiance = Radiance(rng, tranRay, depth + 1, MAX_DEPTH);
                 }
                 else
                 {
-                    reflectionRay = Ray<T>(interInfo.pos, ray.dir.reflect(normal));
+                    reflectionRay = Ray<T>{interInfo.pos, ray.dir.reflect(normal)};
                     radiance = Radiance(rng, reflectionRay, depth + 1, MAX_DEPTH);
                 }
             }
             else
             {
-                reflectionRay = Ray<T>(interInfo.pos, ray.dir.reflect(normal));
+                reflectionRay = Ray<T>{interInfo.pos, ray.dir.reflect(normal)};
                 radiance = Radiance(rng, reflectionRay, depth + 1, MAX_DEPTH);
             }
-            break;
-        default:
-            break;
         }
 
         return mat.diffuse * radiance + mat.emission;
     }
 
-    unsigned char[] Render(int samplesPerPixel, int seed, int maxDepth = 10) const
+    std::vector<Color> Render(int samplesPerPixel, int seed, int maxDepth = 10) const
     {
         int width = cam.width;
         int height = cam.height;
-        unsigned char res[] = new unsigned char[width * height * 3];
-        int rowsDone = 0;
+        std::vector<Color> res(height * width);
+        // int rowsDone = 0;
 
-        for (y here) //? (y; parallel(iota(0, h)))
+        // random_devide rd;
+        // RNG rng(rd());
+
+        RNG rng(seed);
+
+        for (int y = 0; y < height; y++)
         {
-            // RNG rng = RNG(y*y + seed); //?
             for (int x = 0; x < width; ++x)
             {
                 Color pixelColor = {0., 0., 0.};
-                for (int i; i < samplesPerPixel; ++i)
+                for (int i = 0; i < samplesPerPixel; ++i)
                 {
-                    auto ray = cam.getRay(rng, x, y);
+                    auto ray = cam.GetRay(rng, x, y);
                     auto rad = Radiance(rng, ray, 0, maxDepth);
                     pixelColor = pixelColor + rad;
                 }
 
                 pixelColor = pixelColor / (T)samplesPerPixel;
-                auto pixelPos = (y * w + x) * 3;
-                // res[pixelPos..pixelPos + 3][] = material<T>::colorToPixel(pixelColor)[];
+                auto pixelPos = y * width + x;
+                res[pixelPos] = material<T>::colorToPixel(pixelColor);
             }
 
-            rowsDone++;
-            auto prop = 100. * rowsDone / h;
-            auto nok = (int)round(prop * PROGRESS_CHARS / 100.);
-            auto nnok = PROGRESS_CHARS - nok;
+            std::cout << y << std::endl;
+            // rowsDone++;
+            // auto prop = 100. * rowsDone / height;
+            // auto nok = (int)round(prop * PROGRESS_CHARS / 100.);
+            // auto nnok = PROGRESS_CHARS - nok;
             //Log
         }
         return res;
@@ -190,7 +200,7 @@ struct Scene
 };
 
 template <typename T, typename RNG>
-std::ostream &operator<<(const std::ostream &os, Scene<T, RNG> &sc)
+std::ostream &operator<<(std::ostream &os, Scene<T, RNG> &sc)
 {
     return os;
 };

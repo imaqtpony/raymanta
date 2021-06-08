@@ -12,7 +12,7 @@ struct Ray
     point start;
     vec dir;
 
-    point at(T t)
+    point at(T t) const
     {
         return start + dir * t;
     }

@@ -5,15 +5,39 @@
 #include <random>
 
 #include "lodepng.hpp"
-#include "vec3.hpp"
-#include "triangle.hpp"
+// #include "vec3.hpp"
+// #include "triangle.hpp"
 // #include "sphere.hpp"
 // #include "material.hpp"
 // #include "camera.hpp"
-#include "scene.hpp"
+// #include "scene.hpp"
+#include "sceneBuilder.hpp"
 
 using namespace std;
 using pixel = unsigned char;
+
+template <typename T>
+std::ostream &operator<<(std::ostream &os, const vector<T> &v)
+{
+    for (auto &e : v)
+        os << e << ", ";
+    return os;
+}
+
+template <typename T>
+void save_render(string filename, const vector<vec3<T>> &image, int width, int height)
+{
+    using pixel = unsigned char;
+    vector<pixel> png_image;
+    for (auto &pix : image)
+    {
+        png_image.push_back((pixel)pix.x);
+        png_image.push_back((pixel)pix.y);
+        png_image.push_back((pixel)pix.z);
+        png_image.push_back(255);
+    }
+    lodepng::encode(filename, png_image, width, height);
+}
 
 int main()
 {
@@ -25,6 +49,12 @@ int main()
      * renommer un max les vars
      * commenter
      ************************* */
+
+    auto scene = scene_builder::cornelBoxSpheres<double, mt19937>(240, 240);
+
+    auto image = scene.Render(3000, 42);
+    save_render("yes.png", image, scene.cam.width, scene.cam.height);
+
     // string filename = "yolo.png";
     // constexpr uint width = 1048;
     // constexpr uint height = 720;
