@@ -2,15 +2,16 @@
 
 namespace sceneBuilder
 {
+    //convert 2 tris to quad
     std::vector<Triangle> quadToTri(const std::vector<Vec3<real_t>> &points)
     {
-        using Tri = Triangle;
-        std::vector<Tri> res;
-        res.push_back(Tri{points[0], points[1], points[2]});
-        res.push_back(Tri{points[0], points[2], points[3]});
+        std::vector<Triangle> res;
+        res.push_back(Triangle{points[0], points[1], points[2]});
+        res.push_back(Triangle{points[0], points[2], points[3]});
         return res;
     }
 
+    //the current scene to render
     Scene cornelBoxSpheres(int width, int height)
     {
         using P = Vec3<real_t>;

@@ -23,6 +23,8 @@ struct Triangle
     {
         vec pvec = p_ray.dir ^ ac;
         real_t det = ab.dot(pvec);
+
+        // if approx parallel
         if (std::abs(det) < EPSILON)
             return -1;
 
@@ -30,6 +32,7 @@ struct Triangle
         vec tvec = p_ray.start - a;
         real_t u = tvec.dot(pvec) * invdet;
 
+        // is it out ?
         if (u < 0. || u > 1.)
             return -1;
 
@@ -40,6 +43,7 @@ struct Triangle
             return -1;
 
         real_t t = ac.dot(qvec) * invdet;
+        //parallel
         if (t < EPSILON)
             return -1;
 

@@ -17,6 +17,7 @@ std::pair<bool, Scene::IntersectionInfo> Scene::intersect(const Ray &ray) const
 {
     real_t minDist = std::numeric_limits<real_t>::infinity();
     size_t minId;
+    //intersect on every sphere & triangle
     for (size_t i = 0; i < spheres.size(); i++)
     {
         auto inter = spheres[i].intersect(ray);
@@ -39,6 +40,7 @@ std::pair<bool, Scene::IntersectionInfo> Scene::intersect(const Ray &ray) const
         }
     }
 
+    //no intersection here
     if (minDist == std::numeric_limits<real_t>::infinity())
     {
         IntersectionInfo res;
@@ -57,12 +59,15 @@ std::pair<bool, Scene::IntersectionInfo> Scene::intersect(const Ray &ray) const
 
 Scene::Color Scene::radiance(rng_t &rng, const Ray &ray, int depth, int MAX_DEPTH) const
 {
+    // rand 0,1
     static std::uniform_real_distribution uniform01(0., 1.);
 
+    //ray has reached max bounces
     if (depth > MAX_DEPTH)
         return Color{0, 0, 0};
 
     auto [intersection, interInfo] = intersect(ray);
+    //did not hit anything
     if (!intersection)
         return Color{0, 0, 0};
 
@@ -70,6 +75,7 @@ Scene::Color Scene::radiance(rng_t &rng, const Ray &ray, int depth, int MAX_DEPT
 
     if (depth > RUSSIAN_ROULETTE_MIN_DEPTH)
     {
+        //after 5 bounces the ray has a higher chance of dying on darker materials
         auto p = mat.diffuse.max();
         if (uniform01(rng) < p)
             mat.diffuse = mat.diffuse / p;
@@ -106,6 +112,7 @@ Scene::Color Scene::radiance(rng_t &rng, const Ray &ray, int depth, int MAX_DEPT
             auto rPar = pow((nt * cosi - ni * cost) / (nt * cosi + ni * cost), 2);
             auto p = (rPer + rPar) / 2.;
 
+            //through the glass
             if (uniform01(rng) < 1 - p)
             {
                 Vec3<real_t> tDir = ray.dir * nint;
@@ -139,12 +146,15 @@ std::vector<unsigned char> Scene::render(int samplesPerPixel, int seed, int maxD
     int lines_done = 0;
     std::mutex mut;
 
+    //multi threading on cpu
     std::for_each(
+        //using parallel unsequenced policy
         std::execution::par_unseq,
         ys.begin(),
         ys.end(),
         [this, &res, seed, samplesPerPixel, maxDepth, &lines_done, &mut](int y)
-        {
+        {   
+            //drawing rows
             rng_t rng(y * y + seed);
             for (int x = 0; x < cam.width; ++x)
             {
@@ -165,7 +175,7 @@ std::vector<unsigned char> Scene::render(int samplesPerPixel, int seed, int maxD
                 res[pixelPos + 3] = 255;
             }
 
-            {
+            { //progress bar
                 std::unique_lock lock(mut);
                 ++lines_done;
                 constexpr int total_chars = 50;
@@ -183,7 +193,6 @@ std::vector<unsigned char> Scene::render(int samplesPerPixel, int seed, int maxD
     std::cerr << std::endl;
 
     /* Solo threading */
-
     // for (int y = 0; y < height; y++)
     // {
     //     for (int x = 0; x < width; ++x)

@@ -14,6 +14,7 @@ struct Sphere
     Point center;
     real_t radius;
 
+    //return normal from this sphere
     Vec3<real_t> normal(const Point &p) const
     {
         return (p - center).norm();

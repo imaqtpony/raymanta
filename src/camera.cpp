@@ -18,6 +18,7 @@ Camera::Camera(const Point &pos,
 {
 }
 
+//resampling to get more values on the center of the pixel to avoid aliasing
 real_t Camera::getRandDif(rng_t &rng) const
 {
     std::uniform_real_distribution uniform01(0., 1.);
@@ -25,6 +26,7 @@ real_t Camera::getRandDif(rng_t &rng) const
     return u < 1. ? sqrt(u) - 1. : 1. - sqrt(2 - u);
 }
 
+//generate ray from camera to pixel using semi random method
 Ray Camera::getRay(rng_t &rng, int p_x, int p_y) const
 {
     auto dx = getRandDif(rng);
