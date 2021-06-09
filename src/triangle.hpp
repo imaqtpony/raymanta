@@ -6,41 +6,40 @@
 #include "vec3.hpp"
 #include "ray.hpp"
 
-template <typename T>
-struct triangle
+struct Triangle
 {
-    using point = vec3<T>;
-    using vec = vec3<T>;
+    using point = Vec3<real_t>;
+    using vec = Vec3<real_t>;
 
     point a, b, c;
     vec ab, ac, n;
 
-    triangle(const point &a, const point &b, const point &c)
+    Triangle(const point &a, const point &b, const point &c)
         : a(a), b(b), c(c), ab(b - a), ac(c - a), n((ab ^ ac).norm())
     {
     }
 
-    T Intersect(const Ray<T> &p_ray) const
+    real_t intersect(const Ray &p_ray) const
     {
         vec pvec = p_ray.dir ^ ac;
-        T det = ab.dot(pvec);
+        real_t det = ab.dot(pvec);
         if (std::abs(det) < EPSILON)
             return -1;
 
-        T invdet = 1. / det;
+        real_t invdet = 1. / det;
         vec tvec = p_ray.start - a;
-        T u = tvec.dot(pvec) * invdet;
+        real_t u = tvec.dot(pvec) * invdet;
 
         if (u < 0. || u > 1.)
             return -1;
 
         vec qvec = tvec ^ ab;
-        T v = p_ray.dir.dot(qvec) * invdet;
+        real_t v = p_ray.dir.dot(qvec) * invdet;
 
         if (v < 0. || u + v > 1.)
             return -1;
 
-        T t = ac.dot(qvec) * invdet;
+        real_t t = ac.dot(qvec) * invdet;
         if (t < EPSILON)
             return -1;
 
@@ -48,8 +47,7 @@ struct triangle
     }
 };
 
-template <typename T>
-std::ostream &operator<<(std::ostream &os, const triangle<T> &t)
+inline std::ostream &operator<<(std::ostream &os, const Triangle &t)
 {
     return os << "T{" << t.a << ", " << t.b << ", " << t.c << ",n=" << t.n << "}";
 }

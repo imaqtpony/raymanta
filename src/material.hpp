@@ -6,8 +6,7 @@
 #include "vec3.hpp"
 #include "constants.hpp"
 
-template <typename T>
-struct material
+struct Material
 {
     enum MatType
     {
@@ -16,26 +15,25 @@ struct material
         REFRACT,
     };
 
-    using color = vec3<T>;
+    using color = Vec3<real_t>;
     using ubyte = unsigned char;
 
     color emission, diffuse;
     MatType type;
-    T refractionAngle = (T)0.;
+    real_t refractionAngle = (real_t)0.;
 
-    static ubyte ctp(T t)
+    static ubyte ctp(real_t t)
     {
         return (ubyte)std::round(std::pow(std::clamp(t, 0., 1.), 1. / GAMMA) * 255);
     }
 
-    static vec3<ubyte> colorToPixel(const color &c)
+    static Vec3<ubyte> colorToPixel(const color &c)
     {
         return {ctp(c.x), ctp(c.y), ctp(c.z)};
     }
 };
 
-template <typename T>
-std::ostream &operator<<(std::ostream &os, material<T> &mat)
+inline std::ostream &operator<<(std::ostream &os, Material &mat)
 {
     return os << "M(" << mat.diffuse << ", " << mat.emission << ", " << mat.type << ")";
 }

@@ -3,7 +3,7 @@ BUILD_DIR := build
 DEPS_DIR := .deps
 TARGET := raymanta
 
-COMMON_SRC := lodepng.cpp
+COMMON_SRC := lodepng.cpp camera.cpp sceneBuilder.cpp scene.cpp
 COMMON_SRC := $(addprefix $(SRC_DIR)/, $(COMMON_SRC))
 COMMON_OBJ := $(patsubst $(SRC_DIR)/%.cpp, $(BUILD_DIR)/%.o, $(COMMON_SRC))
 

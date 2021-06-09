@@ -7,20 +7,19 @@
 #include "ray.hpp"
 #include "constants.hpp"
 
-template <typename T>
-struct sphere
+struct Sphere
 {
-    using Point = vec3<T>;
+    using Point = Vec3<real_t>;
 
     Point center;
-    T radius;
+    real_t radius;
 
-    vec3<T> normal(const Point &p) const
+    Vec3<real_t> normal(const Point &p) const
     {
         return (p - center).norm();
     }
 
-    T Intersect(const Ray<T> &ray) const
+    real_t intersect(const Ray &ray) const
     {
         auto cs = center - ray.start;
         auto b = cs.dot(ray.dir);
@@ -43,8 +42,7 @@ struct sphere
     }
 };
 
-template <typename T>
-std::ostream &operator<<(std::ostream &os, const sphere<T> &s)
+inline std::ostream &operator<<(std::ostream &os, const Sphere &s)
 {
     return os << "S(" << s.center << ", " << s.radius << ")";
 }

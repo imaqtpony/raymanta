@@ -3,23 +3,21 @@
 #include <iostream>
 #include "vec3.hpp"
 
-template <typename T>
 struct Ray
 {
-    using point = vec3<T>;
-    using vec = vec3<T>;
+    using point = Vec3<real_t>;
+    using vec = Vec3<real_t>;
 
     point start;
     vec dir;
 
-    point at(T t) const
+    point at(real_t t) const
     {
         return start + dir * t;
     }
 };
 
-template <typename T>
-std::ostream &operator<<(std::ostream &os, const Ray<T> &r)
+inline std::ostream &operator<<(std::ostream &os, const Ray &r)
 {
     return os << "R{" << r.start << ", " << r.dir << "}";
 }
